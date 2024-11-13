@@ -1,71 +1,66 @@
 <template>
   <h1 class="title">Погода</h1>
+  <forecast_card></forecast_card>
   <div class="background">
     <p class="text">Выберите город: </p>
-    <select class="city_list" v-model="city_result" @change="SelectCity" @blur="LoadImage">
-      <option v-for="city in cities" :key="city.name" selected="selected" v-bind:value="city" >{{city.name}}</option>
+    <select class="city_list" v-model="city" @change="SelectCity"> 
+      <option v-for="city in cities" :key="city" selected="selected" v-bind:value="city" >{{city}}</option>
     </select>
-    <div v-if="city_result"> <!---->
+    <div > 
       <p v-if="!weather_data" class="loader"><br>Загрузка...</p> 
-      <div class="weather" v-else> <!---->
+      <div class="weather" v-else> 
         <div class="temp_box weather_box">
-          <img class="image_weather" :src="getImagePath(weather_logo)">
-          <p class="text temp">{{ Math.round(weather_data.main.temp) }}&deg;C</p> <!---->
+          <img class="image_weather" :src="getImagePath(LoadImage(weather_data.weather[0].icon))">
+          <p class="text temp">{{ Math.round(weather_data.main.temp) }}&deg;C</p>
         </div>
         <div class="description_box weather_box">
-          <p class="text block">{{ weather_data.weather[0].description.replace(weather_data.weather[0].description[0], weather_data.weather[0].description[0].toUpperCase()) }}</p> <!-- -->
-          <p class="text block">Ощущается как {{ Math.round(weather_data.main.feels_like) }}&deg;C</p> <!-- -->
+          <p class="text block">{{ weather_data.weather[0].description.replace(weather_data.weather[0].description[0], weather_data.weather[0].description[0].toUpperCase()) }}</p> 
+          <p class="text block">Ощущается как {{ Math.round(weather_data.main.feels_like) }}&deg;C</p> 
         </div>
         <div class="others_box weather_box">
           <div class="other_elem block">
             <img class="other_icon" src="../src/assets/barometer.png">
-            <p class="text">{{ weather_data.main.pressure }} гПА</p> <!---->
+            <p class="text">{{ weather_data.main.pressure }} гПА</p> 
           </div>
           <div class="other_elem block">
             <img class="other_icon" src="../src/assets/humidity.png">
-            <p class="text">{{ weather_data.main.humidity }}%</p> <!---->
+            <p class="text">{{ weather_data.main.humidity }}%</p> 
           </div>
           <div class="other_elem block">
             <img class="other_icon" src="../src/assets/wind.png">
-            <p class="text">{{ weather_data.wind.speed }} м/с</p> <!---->
+            <p class="text">{{ weather_data.wind.speed }} м/с</p> 
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div v-if="city_result"><!---->
-    <h1 class="title" v-if="weather_data">Прогноз (5 дней)</h1> <!---->
-    <div class="background forecast" v-if="forecast_data" @mouseover="LoadImageForecast">
-      <div  class="forecast_elem" v-for="forecast in forecast_data.list" :key="forecast">
-        <p class="hidden weather_code">{{ forecast.weather[0].icon }}</p>
-        <p class="text forecast time">{{forecast.dt_txt.split(' ')[0].split('-')[2] + '.' + forecast.dt_txt.split(' ')[0].split('-')[1]}}</p>
-        <p class="text forecast time_2">{{forecast.dt_txt.split(' ')[1].split(':')[0] + ':' + forecast.dt_txt.split(' ')[1].split(':')[1]}}</p>
-        <div class="forecast_temp_box">
-          <img class="image_weather forecast" :src="getImagePath(weather_logo)">
-          <p class="text forecast_temp">{{Math.round(forecast.main.temp)}}&deg;C &nbsp;/&nbsp;{{Math.round(forecast.main.feels_like)}}&deg;C</p>
-        </div>
-        <div class="forecast_others_box">
-          <div class="other_elem block">
-            <img class="other_icon forecast" src="../src/assets/barometer.png">
-            <p class="text forecast">{{ forecast.main.pressure }} гПа</p>
-          </div>
-          <div class="other_elem block">
-            <img class="other_icon forecast" src="../src/assets/humidity.png">
-            <p class="text forecast">{{forecast.main.humidity}}%</p>
-          </div>
-          <div class="other_elem block">
-            <img class="other_icon forecast" src="../src/assets/wind.png">
-            <p class="text forecast">{{forecast.wind.speed}} м/с</p>
-          </div>
-        </div>
-      </div>
+  <div >
+    <h1 class="title" v-if="weather_data">Прогноз (5 дней)</h1> 
+    <div class="background forecast" v-if="forecast_data">
+      <forecast_elem v-for="forecast in forecast_data.list" 
+      :key="forecast" 
+      :icon_src='getImagePath(LoadImage(forecast.weather[0].icon))' 
+      :date='forecast.dt_txt' 
+      :temp='forecast.main.temp' 
+      :feels_like_temp="forecast.main.feels_like" 
+      :pressure="forecast.main.pressure" 
+      :humidity="forecast.main.humidity" 
+      :wind_speed="forecast.wind.speed" 
+      ></forecast_elem>
     </div>
   </div>
 </template>
 
-<script >
-// import { jsx } from 'vue/jsx-runtime';
-let cities = [
+<script setup>
+import {ref} from 'vue'
+import forecast_elem from './components/forecast_elem.vue';
+
+let weather_data = ref(null)
+let forecast_data = ref(null)
+
+
+
+const cities = ref([
     'Нижний Тагил',
     'Москва',
     'Владивосток',
@@ -79,8 +74,8 @@ let cities = [
     'Париж',
     'Каир',
     'Сидней'
-]
-let weathers = [
+])
+const weathers = ref([
   {code: '01d', src:'sun'},
   {code: '01n', src:'moon'},
   {code: '02d', src:'small_clouds_d'},
@@ -99,90 +94,40 @@ let weathers = [
   {code: '13n', src:'snow'},
   {code: '50d', src:'haze_d'},
   {code: '50n', src:'haze_n'}
-]
+])
 
-
-
-export default {
-  name: 'App',
-  data(){
-    return{
-      weather_data:null,
-      forecast_data:null,
-      cities:[
-        {name:'Нижний Тагил'},
-        {name:'Москва'},
-        {name:'Владивосток'},
-        {name:'Екатеринбург'},
-        {name:'Сочи'},
-        {name:'Мурманск'},
-        {name:'Верхоянск'},
-        {name:'Санкт-Петербург'},
-        {name:'Лондон'},
-        {name:'Нью-Йорк'},
-        {name:'Париж'},
-        {name:'Каир'},
-        {name:'Сидней'},
-      ],
-      city_result:null,
-      weather_logo: "sun"
-
-    }
-  },
-  mounted(){
-  },
-  components: {
-    
-  },
-  methods: {
-    SelectCity(){
-      let city = cities[document.querySelector('.city_list').selectedIndex];
+function SelectCity(){
+  let city_result = cities.value[document.querySelector('.city_list').selectedIndex];
+  
+  
+  fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city_result}&appid=a06d5389c363dc0143a775466aef9cb3&lang=ru&units=metric`)
+    .then(resp=>resp.json())
+    .then(json=>{
+      weather_data.value=json;
+    })
+  
       
-      fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=a06d5389c363dc0143a775466aef9cb3&lang=ru&units=metric`)
-          .then(resp=>resp.json())
-          .then(json=>{
-            this.weather_data=json;
-          });
-      
-      fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=a06d5389c363dc0143a775466aef9cb3&lang=ru&units=metric`)
-          .then(resp=>resp.json())
-          .then(json=>{
-            this.forecast_data=json;
-          });
-    },
-    LoadImage(){
-      let weather_code = this.weather_data["weather"][0]["icon"];
-
-      let i = 0;
-      while (i< weathers.length){
-        if (weather_code == weathers[i].code){
-          this.weather_logo = weathers[i].src
-        }
-        i++;
-      }
-    },
-    LoadImageForecast(){
-      let weather_codes = document.querySelectorAll('.weather_code.hidden');
-      let images = document.querySelectorAll('.image_weather.forecast');
-
-      let i = 0;
-      while (i< weathers.length){
-        let j = 0;
-        while (j < weather_codes.length){
-          if (weather_codes[j].textContent == weathers[i].code){
-            images[j].src = this.getImagePath(weathers[i].src);
-          }
-
-          j++;
-        }
-        i++;
-      }
-    },
-    getImagePath(imageFileName) {
-      const images = require.context('@/assets/', false, /\.png$/);
-      return images(`./${imageFileName}.png`);
+  fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city_result}&appid=a06d5389c363dc0143a775466aef9cb3&lang=ru&units=metric`)
+    .then(resp=>resp.json())
+    .then(json=>{
+      forecast_data.value=json;
+    })
+}
+function LoadImage(weather_code){
+  let weather_logo;
+  let i = 0;
+  while (i< weathers.value.length){
+    if (weather_code == weathers.value[i].code){
+      weather_logo = weathers.value[i].src
     }
+    i++;
   }
+  return weather_logo
+}
+
+function getImagePath(imageFileName) {
+  const images = require.context('@/assets/', false, /\.png$/);
+  return images(`./${imageFileName}.png`);
 }
 </script>
 
