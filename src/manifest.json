@@ -1,0 +1,17 @@
+{
+  "name": "Погода",
+  "short_name": "Погода",
+  "theme_color": "#fff",
+  "background_color": "#fff",
+  "display": "browser",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": ".",
+  "icons": [
+    {
+      "src": "assets/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
